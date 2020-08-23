@@ -42,3 +42,4 @@ jobs:
         git config --global user.email "mr6r1n@gmail.com"
         git config --global user.name "Github CI"
         yarn version --patch
+        npm publish
