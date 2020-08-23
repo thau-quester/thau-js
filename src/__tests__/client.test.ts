@@ -1,6 +1,6 @@
 import { ThauJS } from '../index'
 
-const globalAny: any = global;
+const globalAny: any = global
 let client: ThauJS
 
 it('Should fail if wrong URL is provided', async () => {
