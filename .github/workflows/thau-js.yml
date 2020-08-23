@@ -19,6 +19,7 @@ jobs:
         node-version: 14.4.0
     - name: Test Thau JS
       run: |
+        yarn
         yarn lint
         yarn test
 
@@ -35,5 +36,6 @@ jobs:
     - name: Build and Push the Thau JS package
       run: |
         echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_PUBLISH_TOKEN }}" > .npmrc
+        yarn
         yarn build
         yarn version --patch
