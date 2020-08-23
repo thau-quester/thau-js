@@ -1,6 +1,6 @@
 {
   "name": "@thau-quester/thau-js",
-  "version": "0.1.0-beta.0",
+  "version": "0.1.0",
   "description": "Thau Javascript client",
   "repository": "https://github.com/thau-quester/thau-js",
   "author": "MGrin <mr6r1n@gmail.com>",
