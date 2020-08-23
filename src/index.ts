@@ -28,14 +28,14 @@ export type ThauConfigurations = {
   }
 }
 export type User = {
-  id: 0
+  id?: number
   email: string
-  username: string
-  firstName: string
-  lastName: string
-  dateOfBirth: Date
-  gender: string
-  picture: string
+  username?: string
+  firstName?: string
+  lastName?: string
+  dateOfBirth?: Date | string
+  gender?: string
+  picture?: string
 }
 export type Session = {
   id: number
@@ -96,7 +96,10 @@ export class ThauJS {
     if (!fbUser) {
       fbUser = await new Promise((resolve, reject) => {
         FB.login((response: any) => {
-          return resolve(response.authResponse)
+          if (response.authResponse) {
+            return resolve(response.authResponse)
+          }
+          return resolve()
         })
       })
     }
@@ -189,8 +192,8 @@ export class ThauJS {
   }
 
   public async updateUser(user: User): Promise<User> {
-    await this.put(`/users/${user.id}`, user)
-    return user
+    const updatedUser = await this.put(`/users/${user.id}`, user)
+    return updatedUser
   }
 
   public async logout(): Promise<void> {
@@ -258,7 +261,7 @@ export class ThauJS {
         method: 'PUT',
         ...this.fetchOptions,
         headers: {
-          Accept: 'application/json',
+          accept: 'application/json',
           'Content-Type': 'application/json',
           ...this.getHeaders(),
         },

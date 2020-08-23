@@ -31,14 +31,14 @@ All method return promises that can throw a ThauError in case when the status fr
 
 ```typescript
 export type User = {
-  id: 0
+  id?: 0
   email: string
-  username: string
-  firstName: string
-  lastName: string
-  dateOfBirth: Date
-  gender: string
-  picture: string
+  username?: string
+  firstName?: string
+  lastName?: string
+  dateOfBirth?: Date
+  gender?: string
+  picture?: string
 }
 
 export type Session = {
