@@ -38,4 +38,6 @@ jobs:
         echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_PUBLISH_TOKEN }}" > .npmrc
         yarn
         yarn build
+        git config --global user.email "mr6r1n@gmail.com"
+        git config --global user.name "Github CI"
         yarn version --patch
