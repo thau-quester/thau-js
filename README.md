@@ -8,7 +8,7 @@ JavaScript wrapper around Thau API.
 import { ThauJS } from '@thau-quester/thau-js'
 
 const createThauClient = async () => {
-  const client = ThauJS.createClient('http://localhost:9000/api/v1')
+  const client = await ThauJS.createClient('http://localhost:9000/api/v1')
   return client
 }
 ```
