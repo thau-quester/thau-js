@@ -20,7 +20,7 @@
     "prettier:write": "prettier --parser typescript --single-quote --write \"src/**/*.{ts,tsx}\"",
     "test": "jest",
     "watch": "rollup -cw",
-    "postversion": "git push --tags && npm publish . --tag $npm_package_version && git push && echo \"Successfully released version $npm_package_version!\""
+    "postversion": "git push --tags && yarn npm publish . --tag $npm_package_version && git push && echo \"Successfully released version $npm_package_version!\""
   },
   "devDependencies": {
     "@types/jest": "^26.0.10",
