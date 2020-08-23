@@ -36,6 +36,7 @@ jobs:
     - name: Build and Push the Thau JS package
       run: |
         echo "registry //registry.npmjs.org/:_authToken=${{ secrets.NPM_PUBLISH_TOKEN }}" > .yarnrc
+        echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_PUBLISH_TOKEN }}" > .npmrc
         yarn
         yarn build
         git config --global user.email "mr6r1n@gmail.com"
