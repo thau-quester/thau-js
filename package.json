@@ -1,6 +1,6 @@
 {
   "name": "@thau-quester/thau-js",
-  "version": "0.1.0-beta.0",
+  "version": "0.1.0",
   "description": "Thau Javascript client",
   "repository": "https://github.com/thau-quester/thau-js",
   "author": "MGrin <mr6r1n@gmail.com>",
@@ -19,7 +19,8 @@
     "prettier:check": "prettier --parser typescript --single-quote --list-different \"src/**/*.{ts,tsx}\"",
     "prettier:write": "prettier --parser typescript --single-quote --write \"src/**/*.{ts,tsx}\"",
     "test": "jest",
-    "watch": "rollup -cw"
+    "watch": "rollup -cw",
+    "postversion": "git push --tags && yarn publish . --tag $npm_package_version && git push && echo \"Successfully released version $npm_package_version!\""
   },
   "devDependencies": {
     "@types/jest": "^26.0.10",
