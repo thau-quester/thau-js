@@ -2,6 +2,17 @@
 
 JavaScript wrapper around Thau API.
 
+# Installation
+```
+npm install thau-js
+```
+
+or
+
+```
+yarn add thau-js
+```
+
 # Usage
 
 ```typescript
