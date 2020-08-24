@@ -16,20 +16,16 @@ window.fbAsyncInit = function() {
 `
 
 export const initFBApi = (clientId: string, graphVersion: string) => {
-  if (!document.querySelector('#facebookapi-loader')) {
-    const script = document.createElement('script')
-    script.id = 'facebookapi-loader'
-    script.innerHTML = generateFacebookInitScript(clientId, graphVersion)
-    document.body.appendChild(script)
-  }
+  const script = document.createElement('script')
+  script.id = 'facebookapi-loader'
+  script.innerHTML = generateFacebookInitScript(clientId, graphVersion)
+  document.body.appendChild(script)
 }
 
 export const initGoogleApi = (clientId: string) => {
-  if (!document.querySelector('#gapi-loader')) {
-    const script = document.createElement('script')
-    script.src = 'https://apis.google.com/js/api.js'
-    script.async = true
-    script.id = 'gapi-loader'
-    document.body.appendChild(script)
-  }
+  const script = document.createElement('script')
+  script.src = 'https://apis.google.com/js/api.js'
+  script.async = true
+  script.id = 'gapi-loader'
+  document.body.appendChild(script)
 }

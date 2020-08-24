@@ -4,6 +4,7 @@ import ThauError from './ThauError'
 declare const FB: any
 declare const gapi: any
 
+export { default as ThauError } from './ThauError'
 export type FetchOptions = Omit<RequestInit, 'body' | 'method'>
 export type BroadcastChannel = 'http' | 'kafka'
 export type Strategy = 'facebook' | 'google' | 'password'
@@ -302,8 +303,8 @@ export class ThauJS {
     localStorage.setItem('session_id', token)
   }
 
-  public static async createClient(url: string) {
-    const client = new ThauJS(url)
+  public static async createClient(url: string, fetchOptions?: FetchOptions) {
+    const client = new ThauJS(url, fetchOptions)
     await client.init()
     return client
   }
