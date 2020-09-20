@@ -69,7 +69,9 @@ export class ThauJS {
     }
 
     if (this.configurations.availableStrategies.indexOf('google') !== -1) {
-      await initGoogleApi(this.configurations.googleStrategyConfiguration.clientId)
+      await initGoogleApi(
+        this.configurations.googleStrategyConfiguration.clientId
+      )
       if (!gapi.auth2) {
         await new Promise((resolve, reject) => {
           gapi.load('auth2', {
@@ -85,7 +87,6 @@ export class ThauJS {
                 })
             },
             onerror: (e: any) => {
-              console.error(e)
               return reject(new ThauError(e.details))
             },
           })
@@ -145,11 +146,14 @@ export class ThauJS {
       throw new ThauError('Google login strategy is not supported!', 400)
     }
 
-    const authInstance = gapi.auth2.getAuthInstance();
+    const authInstance = gapi.auth2.getAuthInstance()
     const authResult = await authInstance.grantOfflineAccess()
 
     if (authResult.code) {
-      await this.loginWith('google', { code: authResult.code, redirectURI: window.location.href.slice(0, -1) })
+      await this.loginWith('google', {
+        code: authResult.code,
+        redirectURI: window.location.href.slice(0, -1),
+      })
     } else {
       throw new ThauError(authResult.error)
     }

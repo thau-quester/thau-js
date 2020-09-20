@@ -22,17 +22,19 @@ export const initFBApi = (clientId: string, graphVersion: string) => {
   document.body.appendChild(script)
 }
 
-export const initGoogleApi = (clientId: string) => new Promise((resolve, reject) => {
-  const googleScriptsDependencies = document.createElement('div')
-  googleScriptsDependencies.id = 'gapi-loader'
+export const initGoogleApi = (clientId: string) =>
+  new Promise((resolve, reject) => {
+    const googleScriptsDependencies = document.createElement('div')
+    googleScriptsDependencies.id = 'gapi-loader'
 
-  const googleClientscript = document.createElement('script')
-  googleClientscript.src = 'https://apis.google.com/js/client:platform.js?onload=start'
-  googleClientscript.async = true
-  googleClientscript.id = 'gapi-script'
-  googleScriptsDependencies.appendChild(googleClientscript)
+    const googleClientscript = document.createElement('script')
+    googleClientscript.src =
+      'https://apis.google.com/js/client:platform.js?onload=start'
+    googleClientscript.async = true
+    googleClientscript.id = 'gapi-script'
+    googleScriptsDependencies.appendChild(googleClientscript)
 
-  document.body.appendChild(googleScriptsDependencies)
+    document.body.appendChild(googleScriptsDependencies)
 
-  googleClientscript.addEventListener('load', () => resolve())
-})
+    googleClientscript.addEventListener('load', () => resolve())
+  })
