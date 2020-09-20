@@ -7,7 +7,7 @@ declare const gapi: any
 export { default as ThauError } from './ThauError'
 export type FetchOptions = Omit<RequestInit, 'body' | 'method'>
 export type BroadcastChannel = 'http' | 'kafka'
-export type Strategy = 'facebook' | 'google' | 'password'
+export type Strategy = 'facebook' | 'google' | 'password' | 'github'
 export type ThauConfigurations = {
   environment: string
   appName: string
@@ -20,6 +20,9 @@ export type ThauConfigurations = {
   facebookStrategyConfiguration: {
     clientId: string
     graphVersion: string
+  }
+  gitHubStrategyConfiguration: {
+    clientId: string
   }
   availableStrategies: Strategy[]
   broadcastChannels: BroadcastChannel[]
@@ -59,20 +62,40 @@ export class ThauJS {
     this.token = this.getToken()
   }
 
-  private async init(): Promise<void> {
+  private async init(searchParams: URLSearchParams): Promise<void> {
     this.configurations = await this.get('/configs')
-    if (this.configurations.availableStrategies.indexOf('facebook') !== -1) {
+    const currentLoginFlow = searchParams.get('strategy') as Strategy
+    if (currentLoginFlow) {
+      searchParams.delete('strategy')
+      const data = {} as any
+      searchParams.forEach((value, key) => {
+        data[key] = value
+      })
+      const url = new URL(
+        `${window.location.origin}${window.location.pathname}`
+      )
+      history.pushState(null, null, url.toString())
+      try {
+        await this.loginWith(currentLoginFlow, data)
+      } catch { }
+    }
+
+    if (this.isStrategySupported('facebook')) {
       await initFBApi(
         this.configurations.facebookStrategyConfiguration.clientId,
         this.configurations.facebookStrategyConfiguration.graphVersion
       )
     }
 
-    if (this.configurations.availableStrategies.indexOf('google') !== -1) {
+    if (this.isStrategySupported('google')) {
       await initGoogleApi(
         this.configurations.googleStrategyConfiguration.clientId
       )
     }
+  }
+
+  public isStrategySupported(strategy: Strategy) {
+    return this.configurations.availableStrategies.indexOf(strategy) !== -1
   }
 
   public async getCurrentSession(): Promise<Session> {
@@ -81,8 +104,16 @@ export class ThauJS {
     return session
   }
 
+  public async loginWithGithub(): Promise<void> {
+    if (!this.isStrategySupported('github')) {
+      throw new ThauError('GitHub login strategy is not supported!', 400)
+    }
+
+    window.location.href = `https://github.com/login/oauth/authorize?scope=user:email&client_id=${this.configurations.gitHubStrategyConfiguration.clientId}`
+  }
+
   public async loginWithFacebook(): Promise<Session> {
-    if (this.configurations.availableStrategies.indexOf('facebook') === -1) {
+    if (!this.isStrategySupported('facebook')) {
       throw new ThauError('Facebook login strategy is not supported!', 400)
     }
 
@@ -122,7 +153,7 @@ export class ThauJS {
   }
 
   public async loginWithGoogle(): Promise<Session> {
-    if (this.configurations.availableStrategies.indexOf('google') === -1) {
+    if (!this.isStrategySupported('google')) {
       throw new ThauError('Google login strategy is not supported!', 400)
     }
 
@@ -146,7 +177,7 @@ export class ThauJS {
     email: string,
     password: string
   ): Promise<Session> {
-    if (this.configurations.availableStrategies.indexOf('password') === -1) {
+    if (!this.isStrategySupported('password')) {
       throw new ThauError('Password login strategy is not supported!', 400)
     }
 
@@ -282,7 +313,9 @@ export class ThauJS {
 
   public static async createClient(url: string, fetchOptions?: FetchOptions) {
     const client = new ThauJS(url, fetchOptions)
-    await client.init()
+    const urlSearchParams = new URLSearchParams(window.location.search)
+
+    await client.init(urlSearchParams)
     return client
   }
 }

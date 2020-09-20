@@ -4,8 +4,8 @@ const globalAny: any = global
 let client: ThauJS
 
 jest.mock('../utils', () => ({
-  initFBApi: () => { },
-  initGoogleApi: () => { },
+  initFBApi: () => {},
+  initGoogleApi: () => {},
 }))
 
 it('Should fail if wrong URL is provided', async () => {
@@ -104,15 +104,15 @@ it('Should login using google', async () => {
   })
 
   const mockAuthInstance = {
-    grantOfflineAccess: jest
-      .fn()
-      .mockImplementation(() => Promise.resolve({
-        code: "code"
-      })),
+    grantOfflineAccess: jest.fn().mockImplementation(() =>
+      Promise.resolve({
+        code: 'code',
+      })
+    ),
   }
   globalAny.gapi = {
     auth2: {
-      getAuthInstance: () => mockAuthInstance
+      getAuthInstance: () => mockAuthInstance,
     },
   }
 
@@ -183,7 +183,7 @@ it('Should login using facebook', async () => {
         headers: {
           'Content-Type': 'application/json',
           accept: 'application/json',
-          'x-thau-jwt': "1234",
+          'x-thau-jwt': '1234',
         },
         method: 'POST',
       },

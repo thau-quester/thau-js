@@ -65,25 +65,6 @@
         }
     }
 
-    var generateFacebookInitScript = function (clientId, graphVersion) { return "\nwindow.fbAsyncInit = function() {\n  FB.init({\n    appId      : '" + clientId + "',\n    cookie     : true,                       // Enable cookies to allow the server to access the session.\n    version    : '" + graphVersion + "'           // Use this Graph API version for this call.\n  });\n};\n(function(d, s, id) {                        // Load the SDK asynchronously\n  var js, fjs = d.getElementsByTagName(s)[0];\n  if (d.getElementById(id)) return;\n  js = d.createElement(s); js.id = id;\n  js.src = \"https://connect.facebook.net/en_US/sdk.js\";\n  fjs.parentNode.insertBefore(js, fjs);\n}(document, 'script', 'facebook-jssdk'));\n"; };
-    var initFBApi = function (clientId, graphVersion) {
-        var script = document.createElement('script');
-        script.id = 'facebookapi-loader';
-        script.innerHTML = generateFacebookInitScript(clientId, graphVersion);
-        document.body.appendChild(script);
-    };
-    var initGoogleApi = function (clientId) { return new Promise(function (resolve, reject) {
-        var googleScriptsDependencies = document.createElement('div');
-        googleScriptsDependencies.id = 'gapi-loader';
-        var googleClientscript = document.createElement('script');
-        googleClientscript.src = 'https://apis.google.com/js/client:platform.js?onload=start';
-        googleClientscript.async = true;
-        googleClientscript.id = 'gapi-script';
-        googleScriptsDependencies.appendChild(googleClientscript);
-        document.body.appendChild(googleScriptsDependencies);
-        googleClientscript.addEventListener('load', function () { return resolve(); });
-    }); };
-
     var ThauError = /** @class */ (function () {
         function ThauError(message, status) {
             if (status === void 0) { status = 500; }
@@ -93,60 +74,100 @@
         return ThauError;
     }());
 
+    var generateFacebookInitScript = function (clientId, graphVersion) { return "\nwindow.fbAsyncInit = function() {\n  FB.init({\n    appId      : '" + clientId + "',\n    cookie     : true,                       // Enable cookies to allow the server to access the session.\n    version    : '" + graphVersion + "'           // Use this Graph API version for this call.\n  });\n};\n(function(d, s, id) {                        // Load the SDK asynchronously\n  var js, fjs = d.getElementsByTagName(s)[0];\n  if (d.getElementById(id)) return;\n  js = d.createElement(s); js.id = id;\n  js.src = \"https://connect.facebook.net/en_US/sdk.js\";\n  fjs.parentNode.insertBefore(js, fjs);\n}(document, 'script', 'facebook-jssdk'));\n"; };
+    var initFBApi = function (clientId, graphVersion) {
+        var script = document.createElement('script');
+        script.id = 'facebookapi-loader';
+        script.innerHTML = generateFacebookInitScript(clientId, graphVersion);
+        document.body.appendChild(script);
+    };
+    var initGoogleApi = function (clientId) {
+        return new Promise(function (resolve, reject) {
+            var googleScriptsDependencies = document.createElement('div');
+            googleScriptsDependencies.id = 'gapi-loader';
+            var googleClientscript = document.createElement('script');
+            googleClientscript.src =
+                'https://apis.google.com/js/client:platform.js?onload=start';
+            googleClientscript.async = true;
+            googleClientscript.id = 'gapi-script';
+            googleScriptsDependencies.appendChild(googleClientscript);
+            document.body.appendChild(googleScriptsDependencies);
+            googleClientscript.addEventListener('load', function () {
+                if (!gapi.auth2) {
+                    gapi.load('auth2', {
+                        callback: function () {
+                            gapi.auth2
+                                .init({
+                                client_id: clientId,
+                            })
+                                .then(function () { return resolve(); })
+                                .catch(function (e) {
+                                return reject(new ThauError(e.details));
+                            });
+                        },
+                        onerror: function (e) {
+                            return reject(new ThauError(e.details));
+                        },
+                    });
+                }
+            });
+        });
+    };
+
     var ThauJS = /** @class */ (function () {
         function ThauJS(url, fetchOptions) {
             this.url = url;
             this.fetchOptions = fetchOptions;
             this.token = this.getToken();
         }
-        ThauJS.prototype.init = function () {
+        ThauJS.prototype.init = function (searchParams) {
             return __awaiter(this, void 0, void 0, function () {
-                var _a;
-                var _this = this;
-                return __generator(this, function (_b) {
-                    switch (_b.label) {
+                var _a, currentLoginFlow, data_1, url, _b;
+                return __generator(this, function (_c) {
+                    switch (_c.label) {
                         case 0:
                             _a = this;
                             return [4 /*yield*/, this.get('/configs')];
                         case 1:
-                            _a.configurations = _b.sent();
-                            if (!(this.configurations.availableStrategies.indexOf('facebook') !== -1)) return [3 /*break*/, 3];
-                            return [4 /*yield*/, initFBApi(this.configurations.facebookStrategyConfiguration.clientId, this.configurations.facebookStrategyConfiguration.graphVersion)];
+                            _a.configurations = _c.sent();
+                            currentLoginFlow = searchParams.get('strategy');
+                            if (!currentLoginFlow) return [3 /*break*/, 5];
+                            searchParams.delete("strategy");
+                            data_1 = {};
+                            searchParams.forEach(function (value, key) {
+                                data_1[key] = value;
+                            });
+                            url = new URL("" + window.location.origin + window.location.pathname);
+                            history.pushState(null, null, url.toString());
+                            _c.label = 2;
                         case 2:
-                            _b.sent();
-                            _b.label = 3;
+                            _c.trys.push([2, 4, , 5]);
+                            return [4 /*yield*/, this.loginWith(currentLoginFlow, data_1)];
                         case 3:
-                            if (!(this.configurations.availableStrategies.indexOf('google') !== -1)) return [3 /*break*/, 6];
-                            return [4 /*yield*/, initGoogleApi(this.configurations.googleStrategyConfiguration.clientId)];
+                            _c.sent();
+                            return [3 /*break*/, 5];
                         case 4:
-                            _b.sent();
-                            if (!!gapi.auth2) return [3 /*break*/, 6];
-                            return [4 /*yield*/, new Promise(function (resolve, reject) {
-                                    gapi.load('auth2', {
-                                        callback: function () {
-                                            gapi.auth2
-                                                .init({
-                                                client_id: _this.configurations.googleStrategyConfiguration
-                                                    .clientId,
-                                            })
-                                                .then(function () { return resolve(); })
-                                                .catch(function (e) {
-                                                return reject(new ThauError(e.details));
-                                            });
-                                        },
-                                        onerror: function (e) {
-                                            console.error(e);
-                                            return reject(new ThauError(e.details));
-                                        },
-                                    });
-                                })];
+                            _b = _c.sent();
+                            return [3 /*break*/, 5];
                         case 5:
-                            _b.sent();
-                            _b.label = 6;
-                        case 6: return [2 /*return*/];
+                            if (!this.isStrategySupported('facebook')) return [3 /*break*/, 7];
+                            return [4 /*yield*/, initFBApi(this.configurations.facebookStrategyConfiguration.clientId, this.configurations.facebookStrategyConfiguration.graphVersion)];
+                        case 6:
+                            _c.sent();
+                            _c.label = 7;
+                        case 7:
+                            if (!this.isStrategySupported('google')) return [3 /*break*/, 9];
+                            return [4 /*yield*/, initGoogleApi(this.configurations.googleStrategyConfiguration.clientId)];
+                        case 8:
+                            _c.sent();
+                            _c.label = 9;
+                        case 9: return [2 /*return*/];
                     }
                 });
             });
+        };
+        ThauJS.prototype.isStrategySupported = function (strategy) {
+            return this.configurations.availableStrategies.indexOf(strategy) !== -1;
         };
         ThauJS.prototype.getCurrentSession = function () {
             return __awaiter(this, void 0, void 0, function () {
@@ -162,13 +183,24 @@
                 });
             });
         };
+        ThauJS.prototype.loginWithGithub = function () {
+            return __awaiter(this, void 0, void 0, function () {
+                return __generator(this, function (_a) {
+                    if (!this.isStrategySupported('github')) {
+                        throw new ThauError('GitHub login strategy is not supported!', 400);
+                    }
+                    window.location.href = "https://github.com/login/oauth/authorize?scope=user:email&client_id=" + this.configurations.gitHubStrategyConfiguration.clientId;
+                    return [2 /*return*/];
+                });
+            });
+        };
         ThauJS.prototype.loginWithFacebook = function () {
             return __awaiter(this, void 0, void 0, function () {
                 var fbUser, data, session;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
-                            if (this.configurations.availableStrategies.indexOf('facebook') === -1) {
+                            if (!this.isStrategySupported('facebook')) {
                                 throw new ThauError('Facebook login strategy is not supported!', 400);
                             }
                             return [4 /*yield*/, new Promise(function (resolve, reject) {
@@ -218,7 +250,7 @@
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
-                            if (this.configurations.availableStrategies.indexOf('google') === -1) {
+                            if (!this.isStrategySupported('google')) {
                                 throw new ThauError('Google login strategy is not supported!', 400);
                             }
                             authInstance = gapi.auth2.getAuthInstance();
@@ -226,7 +258,10 @@
                         case 1:
                             authResult = _a.sent();
                             if (!authResult.code) return [3 /*break*/, 3];
-                            return [4 /*yield*/, this.loginWith('google', { code: authResult.code, redirectURI: window.location.href.slice(0, -1) })];
+                            return [4 /*yield*/, this.loginWith('google', {
+                                    code: authResult.code,
+                                    redirectURI: window.location.href.slice(0, -1),
+                                })];
                         case 2:
                             _a.sent();
                             return [3 /*break*/, 4];
@@ -245,7 +280,7 @@
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
-                            if (this.configurations.availableStrategies.indexOf('password') === -1) {
+                            if (!this.isStrategySupported('password')) {
                                 throw new ThauError('Password login strategy is not supported!', 400);
                             }
                             return [4 /*yield*/, this.loginWith('password', { email: email, password: password })];
@@ -436,12 +471,13 @@
         };
         ThauJS.createClient = function (url, fetchOptions) {
             return __awaiter(this, void 0, void 0, function () {
-                var client;
+                var client, urlSearchParams;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
                             client = new ThauJS(url, fetchOptions);
-                            return [4 /*yield*/, client.init()];
+                            urlSearchParams = new URLSearchParams(window.location.search);
+                            return [4 /*yield*/, client.init(urlSearchParams)];
                         case 1:
                             _a.sent();
                             return [2 /*return*/, client];

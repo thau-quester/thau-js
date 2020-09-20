@@ -17,14 +17,15 @@
     </div>
     <div id="auth-actions">
       <div class="btn-group" role="group">
-        <button id="thau-create-password" type="button" class="btn btn-primary" data-toggle="modal"
+        <button id="thau-create-password" type="button" disabled class="btn btn-primary" data-toggle="modal"
           data-target="#create-user-modal">Create user with password</button>
       </div>
       <div class="btn-group" role="group">
-        <button id="thau-password" type="button" class="btn btn-primary" data-toggle="modal"
+        <button id="thau-password" type="button" disabled class="btn btn-primary" data-toggle="modal"
           data-target="#password-login-modal">Password Login</button>
-        <button id="thau-facebook" type="button" class="btn btn-primary">Facebook Login</button>
-        <button id="thau-google" type="button" class="btn btn-primary">Google Login</button>
+        <button id="thau-facebook" type="button" disabled class="btn btn-primary">Facebook Login</button>
+        <button id="thau-google" type="button" disabled class="btn btn-primary">Google Login</button>
+        <button id="thau-github" type="button" disabled class="btn btn-primary">GitHub Login</button>
       </div>
       <div class="modal fade" id="password-login-modal" tabindex="-1" aria-labelledby="passwordLoginModal"
         aria-hidden="true">
@@ -118,6 +119,7 @@
     var passwordLoginBtn = document.getElementById('password-login')
     var facebookLoginBtn = document.getElementById('thau-facebook')
     var googleLoginBtn = document.getElementById('thau-google')
+    var githubLoginBtn = document.getElementById('thau-github')
     var logoutBtn = document.getElementById('thau-logout')
 
     var onLoginSucceed = (session) => {
@@ -135,19 +137,23 @@
 
     window.ThauJS.createClient("http://localhost:9000/api/v1").then((client) => {
       window.thau = client
+
       client.getCurrentSession().then(onLoginSucceed).catch((err) => {
         console.error(err);
       })
 
-      if (!window.thau.configurations.passwordStrategyConfiguration) {
-        passwordLoginOpenModalBtn.disabled = true
-        createUserWithPasswordOpenModalBtn.disabled = true
+      if (client.isStrategySupported('password')) {
+        passwordLoginOpenModalBtn.disabled = false
+        createUserWithPasswordOpenModalBtn.disabled = false
       }
-      if (!window.thau.configurations.facebookStrategyConfiguration) {
-        facebookLoginBtn.disabled = true
+      if (client.isStrategySupported('facebook')) {
+        facebookLoginBtn.disabled = false
       }
-      if (!window.thau.configurations.googleStrategyConfiguration) {
-        googleLoginBtn.disabled = true
+      if (client.isStrategySupported('google')) {
+        googleLoginBtn.disabled = false
+      }
+      if (client.isStrategySupported('github')) {
+        githubLoginBtn.disabled = false
       }
 
       createUserWithPassworBtn.addEventListener('click', () => {
@@ -188,6 +194,10 @@
       window.thau.loginWithGoogle().then(onLoginSucceed).catch((err) => {
         console.error(err);
       })
+    })
+
+    githubLoginBtn.addEventListener('click', () => {
+      window.thau.loginWithGithub()
     })
 
     logoutBtn.addEventListener('click', () => {
