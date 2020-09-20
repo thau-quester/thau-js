@@ -8,6 +8,7 @@
   "private": false,
   "main": "dist/index.js",
   "module": "dist/index.es.js",
+  "iife": "dist/index.iife.js",
   "files": [
     "dist"
   ],
@@ -20,6 +21,7 @@
     "prettier:write": "prettier --parser typescript --single-quote --write \"src/**/*.{ts,tsx}\"",
     "test": "jest",
     "watch": "rollup -cw",
+    "dev": "yarn build && cp dist/index.iife.js example/thau.js && cd example && http-server",
     "postpublish": "git push --tags && git push && echo \"Successfully released version $npm_package_version!\""
   },
   "devDependencies": {

@@ -22,10 +22,17 @@ export const initFBApi = (clientId: string, graphVersion: string) => {
   document.body.appendChild(script)
 }
 
-export const initGoogleApi = (clientId: string) => {
-  const script = document.createElement('script')
-  script.src = 'https://apis.google.com/js/api.js'
-  script.async = true
-  script.id = 'gapi-loader'
-  document.body.appendChild(script)
-}
+export const initGoogleApi = (clientId: string) => new Promise((resolve, reject) => {
+  const googleScriptsDependencies = document.createElement('div')
+  googleScriptsDependencies.id = 'gapi-loader'
+
+  const googleClientscript = document.createElement('script')
+  googleClientscript.src = 'https://apis.google.com/js/client:platform.js?onload=start'
+  googleClientscript.async = true
+  googleClientscript.id = 'gapi-script'
+  googleScriptsDependencies.appendChild(googleClientscript)
+
+  document.body.appendChild(googleScriptsDependencies)
+
+  googleClientscript.addEventListener('load', () => resolve())
+})
