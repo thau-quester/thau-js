@@ -1,4 +1,4 @@
-import { ThauError } from './index'
+import ThauError from './ThauError'
 
 declare const gapi: any
 
@@ -20,7 +20,7 @@ window.fbAsyncInit = function() {
 `
 
 export const initFBApi = (clientId: string, graphVersion: string) =>
-  new Promise((resolve, reject) => {
+  new Promise((resolve) => {
     const script = document.createElement('script')
     script.id = 'facebookapi-loader'
     script.innerHTML = generateFacebookInitScript(clientId, graphVersion)

@@ -1,5 +1,6 @@
 {
   "name": "thau-js",
+  "iifeName": "ThauJS",
   "version": "0.1.1",
   "description": "Thau Javascript client",
   "repository": "https://github.com/thau-quester/thau-js",
