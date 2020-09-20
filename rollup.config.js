@@ -17,7 +17,6 @@ export default {
         {
             file: pkg.iife,
             format: 'iife',
-            name: pkg.iifeName
         },
     ],
     external: [
