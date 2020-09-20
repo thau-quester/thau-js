@@ -72,26 +72,6 @@ export class ThauJS {
       await initGoogleApi(
         this.configurations.googleStrategyConfiguration.clientId
       )
-      if (!gapi.auth2) {
-        await new Promise((resolve, reject) => {
-          gapi.load('auth2', {
-            callback: () => {
-              gapi.auth2
-                .init({
-                  client_id: this.configurations.googleStrategyConfiguration
-                    .clientId,
-                })
-                .then(() => resolve())
-                .catch((e: any) => {
-                  return reject(new ThauError(e.details))
-                })
-            },
-            onerror: (e: any) => {
-              return reject(new ThauError(e.details))
-            },
-          })
-        })
-      }
     }
   }
 
