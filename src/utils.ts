@@ -1,3 +1,7 @@
+import { ThauError } from './index'
+
+declare const gapi: any
+
 const generateFacebookInitScript = (clientId: string, graphVersion: string) => `
 window.fbAsyncInit = function() {
   FB.init({
@@ -15,17 +19,46 @@ window.fbAsyncInit = function() {
 }(document, 'script', 'facebook-jssdk'));
 `
 
-export const initFBApi = (clientId: string, graphVersion: string) => {
-  const script = document.createElement('script')
-  script.id = 'facebookapi-loader'
-  script.innerHTML = generateFacebookInitScript(clientId, graphVersion)
-  document.body.appendChild(script)
-}
+export const initFBApi = (clientId: string, graphVersion: string) =>
+  new Promise((resolve, reject) => {
+    const script = document.createElement('script')
+    script.id = 'facebookapi-loader'
+    script.innerHTML = generateFacebookInitScript(clientId, graphVersion)
+    document.body.appendChild(script)
+    script.addEventListener('load', () => resolve())
+  })
 
-export const initGoogleApi = (clientId: string) => {
-  const script = document.createElement('script')
-  script.src = 'https://apis.google.com/js/api.js'
-  script.async = true
-  script.id = 'gapi-loader'
-  document.body.appendChild(script)
-}
+export const initGoogleApi = (clientId: string) =>
+  new Promise((resolve, reject) => {
+    const googleScriptsDependencies = document.createElement('div')
+    googleScriptsDependencies.id = 'gapi-loader'
+
+    const googleClientscript = document.createElement('script')
+    googleClientscript.src =
+      'https://apis.google.com/js/client:platform.js?onload=start'
+    googleClientscript.async = true
+    googleClientscript.id = 'gapi-script'
+    googleScriptsDependencies.appendChild(googleClientscript)
+
+    document.body.appendChild(googleScriptsDependencies)
+
+    googleClientscript.addEventListener('load', () => {
+      if (!gapi.auth2) {
+        gapi.load('auth2', {
+          callback: () => {
+            gapi.auth2
+              .init({
+                client_id: clientId,
+              })
+              .then(() => resolve())
+              .catch((e: any) => {
+                return reject(new ThauError(e.details))
+              })
+          },
+          onerror: (e: any) => {
+            return reject(new ThauError(e.details))
+          },
+        })
+      }
+    })
+  })

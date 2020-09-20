@@ -3,6 +3,11 @@ import { ThauJS } from '../index'
 const globalAny: any = global
 let client: ThauJS
 
+jest.mock('../utils', () => ({
+  initFBApi: () => {},
+  initGoogleApi: () => {},
+}))
+
 it('Should fail if wrong URL is provided', async () => {
   globalAny.fetch = jest.fn().mockImplementation(async () => ({
     status: 400,

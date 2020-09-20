@@ -14,6 +14,10 @@ export default {
             file: pkg.module,
             format: 'es',
         },
+        {
+            file: pkg.iife,
+            format: 'iife',
+        },
     ],
     external: [
         ...Object.keys(pkg.dependencies || {}),

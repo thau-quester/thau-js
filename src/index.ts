@@ -62,14 +62,16 @@ export class ThauJS {
   private async init(): Promise<void> {
     this.configurations = await this.get('/configs')
     if (this.configurations.availableStrategies.indexOf('facebook') !== -1) {
-      initFBApi(
+      await initFBApi(
         this.configurations.facebookStrategyConfiguration.clientId,
         this.configurations.facebookStrategyConfiguration.graphVersion
       )
     }
 
     if (this.configurations.availableStrategies.indexOf('google') !== -1) {
-      initGoogleApi(this.configurations.googleStrategyConfiguration.clientId)
+      await initGoogleApi(
+        this.configurations.googleStrategyConfiguration.clientId
+      )
     }
   }
 
@@ -124,43 +126,18 @@ export class ThauJS {
       throw new ThauError('Google login strategy is not supported!', 400)
     }
 
-    if (!gapi.auth2) {
-      await new Promise((resolve, reject) => {
-        gapi.load('auth2', {
-          callback: () => {
-            gapi.auth2
-              .init({
-                client_id: this.configurations.googleStrategyConfiguration
-                  .clientId,
-              })
-              .then(() => resolve())
-              .catch((e: any) => {
-                return reject(new ThauError(e.details))
-              })
-          },
-          onerror: (e: any) => {
-            return reject(new ThauError(e.details))
-          },
-        })
+    const authInstance = gapi.auth2.getAuthInstance()
+    const authResult = await authInstance.grantOfflineAccess()
+
+    if (authResult.code) {
+      await this.loginWith('google', {
+        code: authResult.code,
+        redirectURI: window.location.href.slice(0, -1),
       })
+    } else {
+      throw new ThauError(authResult.error)
     }
 
-    const googleUser: any = await new Promise((resolve, reject) => {
-      const authInstance = gapi.auth2.getAuthInstance()
-      authInstance.isSignedIn.listen((success: any) => {
-        if (success) {
-          const user = authInstance.currentUser.get()
-          return resolve(user)
-        }
-      })
-      authInstance.signIn()
-    })
-
-    const data = {
-      id_token: googleUser.getAuthResponse().id_token,
-    }
-
-    await this.loginWith('google', data)
     const session = await this.getCurrentSession()
     return session
   }
@@ -309,3 +286,6 @@ export class ThauJS {
     return client
   }
 }
+
+// @ts-ignore
+window.ThauJS = ThauJS
