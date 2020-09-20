@@ -66,12 +66,14 @@ export class ThauJS {
     this.configurations = await this.get('/configs')
     const currentLoginFlow = searchParams.get('strategy') as Strategy
     if (currentLoginFlow) {
-      searchParams.delete("strategy")
+      searchParams.delete('strategy')
       const data = {} as any
       searchParams.forEach((value, key) => {
         data[key] = value
       })
-      const url = new URL(`${window.location.origin}${window.location.pathname}`);
+      const url = new URL(
+        `${window.location.origin}${window.location.pathname}`
+      )
       history.pushState(null, null, url.toString())
       try {
         await this.loginWith(currentLoginFlow, data)
@@ -90,7 +92,6 @@ export class ThauJS {
         this.configurations.googleStrategyConfiguration.clientId
       )
     }
-
   }
 
   public isStrategySupported(strategy: Strategy) {
@@ -321,4 +322,3 @@ export class ThauJS {
 
 // @ts-ignore
 window.ThauJS = ThauJS
-document.onload
