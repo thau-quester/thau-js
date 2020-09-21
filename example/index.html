@@ -26,6 +26,7 @@
         <button id="thau-facebook" type="button" disabled class="btn btn-primary">Facebook Login</button>
         <button id="thau-google" type="button" disabled class="btn btn-primary">Google Login</button>
         <button id="thau-github" type="button" disabled class="btn btn-primary">GitHub Login</button>
+        <button id="thau-twitter" type="button" disabled class="btn btn-primary">Twitter Login</button>
       </div>
       <div class="modal fade" id="password-login-modal" tabindex="-1" aria-labelledby="passwordLoginModal"
         aria-hidden="true">
@@ -120,6 +121,7 @@
     var facebookLoginBtn = document.getElementById('thau-facebook')
     var googleLoginBtn = document.getElementById('thau-google')
     var githubLoginBtn = document.getElementById('thau-github')
+    var twitterLoginBtn = document.getElementById('thau-twitter')
     var logoutBtn = document.getElementById('thau-logout')
 
     var onLoginSucceed = (session) => {
@@ -154,6 +156,10 @@
       }
       if (client.isStrategySupported('github')) {
         githubLoginBtn.disabled = false
+      }
+
+      if (client.isStrategySupported('twitter')) {
+        twitterLoginBtn.disabled = false
       }
 
       createUserWithPassworBtn.addEventListener('click', () => {
@@ -200,6 +206,9 @@
       window.thau.loginWithGithub()
     })
 
+    twitterLoginBtn.addEventListener('click', () => {
+      window.thau.loginWithTwitter();
+    })
     logoutBtn.addEventListener('click', () => {
       window.thau.logout().then(onLoginSucceed).catch((err) => {
         console.error(err);

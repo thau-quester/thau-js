@@ -7,7 +7,7 @@ declare const gapi: any
 export { default as ThauError } from './ThauError'
 export type FetchOptions = Omit<RequestInit, 'body' | 'method'>
 export type BroadcastChannel = 'http' | 'kafka'
-export type Strategy = 'facebook' | 'google' | 'password' | 'github'
+export type Strategy = 'facebook' | 'google' | 'password' | 'github' | 'twitter'
 export type ThauConfigurations = {
   environment: string
   appName: string
@@ -104,6 +104,14 @@ export class ThauJS {
     return session
   }
 
+  public async loginWithTwitter(): Promise<void> {
+    try {
+      await this.loginWith("twitter", {
+        redirectURI: window.location.href,
+      })
+    } catch { }
+  }
+
   public async loginWithGithub(): Promise<void> {
     if (!this.isStrategySupported('github')) {
       throw new ThauError('GitHub login strategy is not supported!', 400)
@@ -163,7 +171,7 @@ export class ThauJS {
     if (authResult.code) {
       await this.loginWith('google', {
         code: authResult.code,
-        redirectURI: window.location.href.slice(0, -1),
+        redirectURI: window.location.href,
       })
     } else {
       throw new ThauError(authResult.error)
