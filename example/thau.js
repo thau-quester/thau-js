@@ -75,12 +75,13 @@
     }());
 
     var generateFacebookInitScript = function (clientId, graphVersion) { return "\nwindow.fbAsyncInit = function() {\n  FB.init({\n    appId      : '" + clientId + "',\n    cookie     : true,                       // Enable cookies to allow the server to access the session.\n    version    : '" + graphVersion + "'           // Use this Graph API version for this call.\n  });\n};\n(function(d, s, id) {                        // Load the SDK asynchronously\n  var js, fjs = d.getElementsByTagName(s)[0];\n  if (d.getElementById(id)) return;\n  js = d.createElement(s); js.id = id;\n  js.src = \"https://connect.facebook.net/en_US/sdk.js\";\n  fjs.parentNode.insertBefore(js, fjs);\n}(document, 'script', 'facebook-jssdk'));\n"; };
-    var initFBApi = function (clientId, graphVersion) {
+    var initFBApi = function (clientId, graphVersion) { return new Promise(function (resolve, reject) {
         var script = document.createElement('script');
         script.id = 'facebookapi-loader';
         script.innerHTML = generateFacebookInitScript(clientId, graphVersion);
         document.body.appendChild(script);
-    };
+        resolve();
+    }); };
     var initGoogleApi = function (clientId) {
         return new Promise(function (resolve, reject) {
             var googleScriptsDependencies = document.createElement('div');
@@ -131,7 +132,7 @@
                         case 1:
                             _a.configurations = _c.sent();
                             currentLoginFlow = searchParams.get('strategy');
-                            if (!currentLoginFlow) return [3 /*break*/, 5];
+                            if (!(currentLoginFlow && this.isStrategySupported(currentLoginFlow))) return [3 /*break*/, 5];
                             searchParams.delete('strategy');
                             data_1 = {};
                             searchParams.forEach(function (value, key) {
@@ -139,6 +140,12 @@
                             });
                             url = new URL("" + window.location.origin + window.location.pathname);
                             history.pushState(null, null, url.toString());
+                            if (currentLoginFlow == "linkedin" && data_1.error) {
+                                throw new ThauError(data_1.error_description, 401);
+                            }
+                            if (currentLoginFlow == "linkedin") {
+                                data_1.redirectURI = window.location.href + "?strategy=linkedin";
+                            }
                             _c.label = 2;
                         case 2:
                             _c.trys.push([2, 4, , 5]);
@@ -151,15 +158,19 @@
                             return [3 /*break*/, 5];
                         case 5:
                             if (!this.isStrategySupported('facebook')) return [3 /*break*/, 7];
+                            console.log('Initializing Facebook SDK...');
                             return [4 /*yield*/, initFBApi(this.configurations.facebookStrategyConfiguration.clientId, this.configurations.facebookStrategyConfiguration.graphVersion)];
                         case 6:
                             _c.sent();
+                            console.log('Facebook SDK: done.');
                             _c.label = 7;
                         case 7:
                             if (!this.isStrategySupported('google')) return [3 /*break*/, 9];
+                            console.log('Initializing Google SDK...');
                             return [4 /*yield*/, initGoogleApi(this.configurations.googleStrategyConfiguration.clientId)];
                         case 8:
                             _c.sent();
+                            console.log('Google SDK: done.');
                             _c.label = 9;
                         case 9: return [2 /*return*/];
                     }
@@ -183,6 +194,24 @@
                 });
             });
         };
+        ThauJS.prototype.loginWithLinkedIn = function () {
+            return __awaiter(this, void 0, void 0, function () {
+                var linkedinURI;
+                return __generator(this, function (_a) {
+                    if (!this.isStrategySupported('linkedin')) {
+                        throw new ThauError('LinkedIn login strategy is not supported!', 400);
+                    }
+                    linkedinURI = "https://www.linkedin.com/oauth/v2/authorization?";
+                    linkedinURI += "response_type=code";
+                    linkedinURI += "&client_id=" + this.configurations.linkedinStrategyConfiguration.clientId;
+                    linkedinURI += "&redirect_uri=" + window.location.href;
+                    linkedinURI += "&state=" + Math.random().toString(36).substring(7);
+                    linkedinURI += "&scope=r_liteprofile%20r_emailaddress";
+                    window.location.href = linkedinURI;
+                    return [2 /*return*/];
+                });
+            });
+        };
         ThauJS.prototype.loginWithTwitter = function () {
             return __awaiter(this, void 0, void 0, function () {
                 var e_1;
@@ -190,7 +219,7 @@
                     switch (_a.label) {
                         case 0:
                             _a.trys.push([0, 2, , 3]);
-                            return [4 /*yield*/, this.loginWith("twitter", {
+                            return [4 /*yield*/, this.loginWith('twitter', {
                                     redirectURI: window.location.href + "?strategy=twitter",
                                 })];
                         case 1:
@@ -198,7 +227,7 @@
                             return [3 /*break*/, 3];
                         case 2:
                             e_1 = _a.sent();
-                            if (e_1.status === "FOUND") {
+                            if (e_1.status === 'FOUND') {
                                 window.location.href = e_1.message;
                             }
                             return [3 /*break*/, 3];

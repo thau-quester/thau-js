@@ -3,11 +3,12 @@ import ThauError from './ThauError'
 
 declare const FB: any
 declare const gapi: any
+declare const IN: any
 
 export { default as ThauError } from './ThauError'
 export type FetchOptions = Omit<RequestInit, 'body' | 'method'>
 export type BroadcastChannel = 'http' | 'kafka'
-export type Strategy = 'facebook' | 'google' | 'password' | 'github' | 'twitter'
+export type Strategy = 'facebook' | 'google' | 'password' | 'github' | 'twitter' | 'linkedin'
 export type ThauConfigurations = {
   environment: string
   appName: string
@@ -22,6 +23,9 @@ export type ThauConfigurations = {
     graphVersion: string
   }
   gitHubStrategyConfiguration: {
+    clientId: string
+  }
+  linkedinStrategyConfiguration: {
     clientId: string
   }
   availableStrategies: Strategy[]
@@ -64,8 +68,9 @@ export class ThauJS {
 
   private async init(searchParams: URLSearchParams): Promise<void> {
     this.configurations = await this.get('/configs')
+
     const currentLoginFlow = searchParams.get('strategy') as Strategy
-    if (currentLoginFlow) {
+    if (currentLoginFlow && this.isStrategySupported(currentLoginFlow)) {
       searchParams.delete('strategy')
       const data = {} as any
       searchParams.forEach((value, key) => {
@@ -75,22 +80,35 @@ export class ThauJS {
         `${window.location.origin}${window.location.pathname}`
       )
       history.pushState(null, null, url.toString())
+
+      if (currentLoginFlow == "linkedin" && data.error) {
+        throw new ThauError(data.error_description, 401)
+      }
+
+      if (currentLoginFlow == "linkedin") {
+        data.redirectURI = `${window.location.href}?strategy=linkedin`
+      }
+
       try {
         await this.loginWith(currentLoginFlow, data)
-      } catch {}
+      } catch { }
     }
 
     if (this.isStrategySupported('facebook')) {
+      console.log('Initializing Facebook SDK...')
       await initFBApi(
         this.configurations.facebookStrategyConfiguration.clientId,
         this.configurations.facebookStrategyConfiguration.graphVersion
       )
+      console.log('Facebook SDK: done.')
     }
 
     if (this.isStrategySupported('google')) {
+      console.log('Initializing Google SDK...')
       await initGoogleApi(
         this.configurations.googleStrategyConfiguration.clientId
       )
+      console.log('Google SDK: done.')
     }
   }
 
@@ -102,6 +120,20 @@ export class ThauJS {
     const session: Session = await this.get('/session')
     session.user.dateOfBirth = new Date(session.user.dateOfBirth)
     return session
+  }
+
+  public async loginWithLinkedIn(): Promise<void> {
+    if (!this.isStrategySupported('linkedin')) {
+      throw new ThauError('LinkedIn login strategy is not supported!', 400)
+    }
+    let linkedinURI = `https://www.linkedin.com/oauth/v2/authorization?`
+    linkedinURI += `response_type=code`
+    linkedinURI += `&client_id=${this.configurations.linkedinStrategyConfiguration.clientId}`
+    linkedinURI += `&redirect_uri=${window.location.href}?strategy=linkedin`
+    linkedinURI += `&state=${Math.random().toString(36).substring(7)}`
+    linkedinURI += `&scope=r_liteprofile%20r_emailaddress`
+
+    window.location.href = linkedinURI
   }
 
   public async loginWithTwitter(): Promise<void> {

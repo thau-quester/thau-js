@@ -16,17 +16,25 @@
       <h1 class="display-4">Thau JS example</h1>
     </div>
     <div id="auth-actions">
-      <div class="btn-group" role="group">
-        <button id="thau-create-password" type="button" disabled class="btn btn-primary" data-toggle="modal"
-          data-target="#create-user-modal">Create user with password</button>
+      <div class="row">
+        <div class="btn-group" role="group">
+          <button id="thau-create-password" type="button" disabled class="btn btn-primary" data-toggle="modal"
+            data-target="#create-user-modal">Create user with password</button>
+        </div>
       </div>
-      <div class="btn-group" role="group">
-        <button id="thau-password" type="button" disabled class="btn btn-primary" data-toggle="modal"
-          data-target="#password-login-modal">Password Login</button>
-        <button id="thau-facebook" type="button" disabled class="btn btn-primary">Facebook Login</button>
-        <button id="thau-google" type="button" disabled class="btn btn-primary">Google Login</button>
-        <button id="thau-github" type="button" disabled class="btn btn-primary">GitHub Login</button>
-        <button id="thau-twitter" type="button" disabled class="btn btn-primary">Twitter Login</button>
+      <div class="row">
+        <div style="border: 1px solid #e9ecef; width: 100%; margin-top: 6px; margin-bottom: 6px"></div>
+      </div>
+      <div class="row">
+        <div class="btn-group" role="group">
+          <button id="thau-password" type="button" disabled class="btn btn-primary" data-toggle="modal"
+            data-target="#password-login-modal">Password Login</button>
+          <button id="thau-facebook" type="button" disabled class="btn btn-primary">Facebook Login</button>
+          <button id="thau-google" type="button" disabled class="btn btn-primary">Google Login</button>
+          <button id="thau-github" type="button" disabled class="btn btn-primary">GitHub Login</button>
+          <button id="thau-twitter" type="button" disabled class="btn btn-primary">Twitter Login</button>
+          <button id="thau-linkedin" type="button" disabled class="btn btn-primary">LinkedIn Login</button>
+        </div>
       </div>
       <div class="modal fade" id="password-login-modal" tabindex="-1" aria-labelledby="passwordLoginModal"
         aria-hidden="true">
@@ -122,6 +130,7 @@
     var googleLoginBtn = document.getElementById('thau-google')
     var githubLoginBtn = document.getElementById('thau-github')
     var twitterLoginBtn = document.getElementById('thau-twitter')
+    var linkedinLoginBtn = document.getElementById('thau-linkedin')
     var logoutBtn = document.getElementById('thau-logout')
 
     var onLoginSucceed = (session) => {
@@ -157,9 +166,11 @@
       if (client.isStrategySupported('github')) {
         githubLoginBtn.disabled = false
       }
-
       if (client.isStrategySupported('twitter')) {
         twitterLoginBtn.disabled = false
+      }
+      if (client.isStrategySupported('linkedin')) {
+        linkedinLoginBtn.disabled = false
       }
 
       createUserWithPassworBtn.addEventListener('click', () => {
@@ -207,7 +218,11 @@
     })
 
     twitterLoginBtn.addEventListener('click', () => {
-      window.thau.loginWithTwitter();
+      window.thau.loginWithTwitter()
+    })
+
+    linkedinLoginBtn.addEventListener('click', () => {
+      window.thau.loginWithLinkedIn()
     })
     logoutBtn.addEventListener('click', () => {
       window.thau.logout().then(onLoginSucceed).catch((err) => {
