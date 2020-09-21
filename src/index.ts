@@ -77,7 +77,7 @@ export class ThauJS {
       history.pushState(null, null, url.toString())
       try {
         await this.loginWith(currentLoginFlow, data)
-      } catch { }
+      } catch {}
     }
 
     if (this.isStrategySupported('facebook')) {
@@ -106,10 +106,14 @@ export class ThauJS {
 
   public async loginWithTwitter(): Promise<void> {
     try {
-      await this.loginWith("twitter", {
-        redirectURI: window.location.href,
+      await this.loginWith('twitter', {
+        redirectURI: `${window.location.href}?strategy=twitter`,
       })
-    } catch { }
+    } catch (e) {
+      if (e.status === 'FOUND') {
+        window.location.href = e.message
+      }
+    }
   }
 
   public async loginWithGithub(): Promise<void> {

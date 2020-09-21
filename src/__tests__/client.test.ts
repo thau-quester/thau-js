@@ -122,7 +122,7 @@ it('Should login using google', async () => {
     [
       '/session/google',
       {
-        body: '{"code":"code","redirectURI":"http://localhost"}',
+        body: '{"code":"code","redirectURI":"http://localhost/"}',
         headers: {
           'Content-Type': 'application/json',
           accept: 'application/json',

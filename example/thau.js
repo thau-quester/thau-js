@@ -185,33 +185,24 @@
         };
         ThauJS.prototype.loginWithTwitter = function () {
             return __awaiter(this, void 0, void 0, function () {
-                var redirectURI, response, body, e_1;
+                var e_1;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
-                            redirectURI = window.location.href;
-                            _a.label = 1;
-                        case 1:
-                            _a.trys.push([1, 4, , 5]);
-                            return [4 /*yield*/, fetch('https://api.twitter.com/oauth/request_token', {
-                                    headers: {
-                                        oauth_callback: redirectURI,
-                                    },
+                            _a.trys.push([0, 2, , 3]);
+                            return [4 /*yield*/, this.loginWith("twitter", {
+                                    redirectURI: window.location.href + "?strategy=twitter",
                                 })];
-                        case 2:
-                            response = _a.sent();
-                            return [4 /*yield*/, response.json()];
-                        case 3:
-                            body = _a.sent();
-                            return [3 /*break*/, 5];
-                        case 4:
-                            e_1 = _a.sent();
-                            throw new ThauError(e_1.message);
-                        case 5: return [4 /*yield*/, this.handleResponseError(response, body)];
-                        case 6:
+                        case 1:
                             _a.sent();
-                            console.log(body);
-                            return [2 /*return*/];
+                            return [3 /*break*/, 3];
+                        case 2:
+                            e_1 = _a.sent();
+                            if (e_1.status === "FOUND") {
+                                window.location.href = e_1.message;
+                            }
+                            return [3 /*break*/, 3];
+                        case 3: return [2 /*return*/];
                     }
                 });
             });
