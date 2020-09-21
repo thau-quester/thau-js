@@ -7,7 +7,7 @@ declare const gapi: any
 export { default as ThauError } from './ThauError'
 export type FetchOptions = Omit<RequestInit, 'body' | 'method'>
 export type BroadcastChannel = 'http' | 'kafka'
-export type Strategy = 'facebook' | 'google' | 'password' | 'github'
+export type Strategy = 'facebook' | 'google' | 'password' | 'github' | 'twitter'
 export type ThauConfigurations = {
   environment: string
   appName: string
@@ -77,7 +77,7 @@ export class ThauJS {
       history.pushState(null, null, url.toString())
       try {
         await this.loginWith(currentLoginFlow, data)
-      } catch { }
+      } catch {}
     }
 
     if (this.isStrategySupported('facebook')) {
@@ -102,6 +102,18 @@ export class ThauJS {
     const session: Session = await this.get('/session')
     session.user.dateOfBirth = new Date(session.user.dateOfBirth)
     return session
+  }
+
+  public async loginWithTwitter(): Promise<void> {
+    try {
+      await this.loginWith('twitter', {
+        redirectURI: `${window.location.href}?strategy=twitter`,
+      })
+    } catch (e) {
+      if (e.status === 'FOUND') {
+        window.location.href = e.message
+      }
+    }
   }
 
   public async loginWithGithub(): Promise<void> {
@@ -163,7 +175,7 @@ export class ThauJS {
     if (authResult.code) {
       await this.loginWith('google', {
         code: authResult.code,
-        redirectURI: window.location.href.slice(0, -1),
+        redirectURI: window.location.href,
       })
     } else {
       throw new ThauError(authResult.error)

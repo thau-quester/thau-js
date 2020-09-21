@@ -32,6 +32,7 @@ All method return promises that can throw a ThauError in case when the status fr
 * `loginWithFacebook(): Promise<Session>` - logs the user using facebook and returns the created session.
 * `loginWithGoogle(): Promise<Session>` - logs the user using google and returns the created session.
 * `loginWithGithub(): Promise<Session>` - logs the user using github and returns the created session.
+* `loginWithTwitter(): Promise<Session>` - logs the user using twitter and returns the created session.
 * `loginWithPassword(email: string, password: string): Promise<Session>` - logs the user using password and returns the created session.
 * `getUserById(id: number): Promise<User>` - returns a user for a given ID.
 * `createUser(user: User, password: string): Promise<Session>` - creates a new user using password ccredentials and returns created session.
