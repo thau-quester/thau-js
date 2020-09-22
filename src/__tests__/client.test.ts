@@ -4,8 +4,8 @@ const globalAny: any = global
 let client: ThauJS
 
 jest.mock('../utils', () => ({
-  initFBApi: () => { },
-  initGoogleApi: () => { },
+  initFBApi: () => {},
+  initGoogleApi: () => {},
 }))
 
 it('Should fail if wrong URL is provided', async () => {
