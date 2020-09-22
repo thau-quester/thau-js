@@ -19,14 +19,15 @@ window.fbAsyncInit = function() {
 }(document, 'script', 'facebook-jssdk'));
 `
 
-export const initFBApi = (clientId: string, graphVersion: string) => new Promise((resolve, reject) => {
-  const script = document.createElement('script')
-  script.id = 'facebookapi-loader'
-  script.innerHTML = generateFacebookInitScript(clientId, graphVersion)
-  document.body.appendChild(script)
+export const initFBApi = (clientId: string, graphVersion: string) =>
+  new Promise((resolve, reject) => {
+    const script = document.createElement('script')
+    script.id = 'facebookapi-loader'
+    script.innerHTML = generateFacebookInitScript(clientId, graphVersion)
+    document.body.appendChild(script)
 
-  resolve()
-})
+    resolve()
+  })
 
 export const initGoogleApi = (clientId: string) =>
   new Promise((resolve, reject) => {
