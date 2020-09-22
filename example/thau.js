@@ -75,13 +75,15 @@
     }());
 
     var generateFacebookInitScript = function (clientId, graphVersion) { return "\nwindow.fbAsyncInit = function() {\n  FB.init({\n    appId      : '" + clientId + "',\n    cookie     : true,                       // Enable cookies to allow the server to access the session.\n    version    : '" + graphVersion + "'           // Use this Graph API version for this call.\n  });\n};\n(function(d, s, id) {                        // Load the SDK asynchronously\n  var js, fjs = d.getElementsByTagName(s)[0];\n  if (d.getElementById(id)) return;\n  js = d.createElement(s); js.id = id;\n  js.src = \"https://connect.facebook.net/en_US/sdk.js\";\n  fjs.parentNode.insertBefore(js, fjs);\n}(document, 'script', 'facebook-jssdk'));\n"; };
-    var initFBApi = function (clientId, graphVersion) { return new Promise(function (resolve, reject) {
-        var script = document.createElement('script');
-        script.id = 'facebookapi-loader';
-        script.innerHTML = generateFacebookInitScript(clientId, graphVersion);
-        document.body.appendChild(script);
-        resolve();
-    }); };
+    var initFBApi = function (clientId, graphVersion) {
+        return new Promise(function (resolve, reject) {
+            var script = document.createElement('script');
+            script.id = 'facebookapi-loader';
+            script.innerHTML = generateFacebookInitScript(clientId, graphVersion);
+            document.body.appendChild(script);
+            resolve();
+        });
+    };
     var initGoogleApi = function (clientId) {
         return new Promise(function (resolve, reject) {
             var googleScriptsDependencies = document.createElement('div');
@@ -178,10 +180,10 @@
                             });
                             url = new URL("" + window.location.origin + window.location.pathname);
                             history.pushState(null, null, url.toString());
-                            if (currentLoginFlow == "linkedin" && data_1.error) {
+                            if (currentLoginFlow === 'linkedin' && data_1.error) {
                                 throw new ThauError(data_1.error_description, 401);
                             }
-                            if (currentLoginFlow == "linkedin") {
+                            if (currentLoginFlow === 'linkedin') {
                                 data_1.redirectURI = window.location.href + "?strategy=linkedin";
                             }
                             return [4 /*yield*/, this.loginWith(currentLoginFlow, data_1)];
@@ -412,11 +414,34 @@
                 });
             });
         };
-        ThauJS.prototype.logout = function () {
+        ThauJS.prototype.logout = function (sessionId) {
+            return __awaiter(this, void 0, void 0, function () {
+                var _a;
+                return __generator(this, function (_b) {
+                    switch (_b.label) {
+                        case 0:
+                            _b.trys.push([0, 2, , 3]);
+                            return [4 /*yield*/, this.delete("/session" + (sessionId ? "?sessionId=" + sessionId : ''))];
+                        case 1:
+                            _b.sent();
+                            return [3 /*break*/, 3];
+                        case 2:
+                            _a = _b.sent();
+                            return [3 /*break*/, 3];
+                        case 3:
+                            this.setToken(undefined);
+                            return [2 /*return*/];
+                    }
+                });
+            });
+        };
+        ThauJS.prototype.listSessions = function () {
             return __awaiter(this, void 0, void 0, function () {
                 return __generator(this, function (_a) {
-                    this.setToken(undefined);
-                    return [2 /*return*/];
+                    switch (_a.label) {
+                        case 0: return [4 /*yield*/, this.get('/session/open')];
+                        case 1: return [2 /*return*/, _a.sent()];
+                    }
                 });
             });
         };
@@ -506,6 +531,31 @@
                         case 3:
                             e_5 = _a.sent();
                             throw new ThauError(e_5.message);
+                        case 4: return [4 /*yield*/, this.handleResponseError(response, body)];
+                        case 5:
+                            _a.sent();
+                            return [2 /*return*/, body];
+                    }
+                });
+            });
+        };
+        ThauJS.prototype.delete = function (path, data) {
+            return __awaiter(this, void 0, void 0, function () {
+                var response, body, e_6;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            _a.trys.push([0, 3, , 4]);
+                            return [4 /*yield*/, fetch("" + this.url + path, __assign(__assign({ method: 'DELETE' }, this.fetchOptions), { headers: __assign({ accept: 'application/json', 'Content-Type': 'application/json' }, this.getHeaders()), body: data ? JSON.stringify(data) : data }))];
+                        case 1:
+                            response = _a.sent();
+                            return [4 /*yield*/, response.json()];
+                        case 2:
+                            body = _a.sent();
+                            return [3 /*break*/, 4];
+                        case 3:
+                            e_6 = _a.sent();
+                            throw new ThauError(e_6.message);
                         case 4: return [4 /*yield*/, this.handleResponseError(response, body)];
                         case 5:
                             _a.sent();

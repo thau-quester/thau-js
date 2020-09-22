@@ -37,7 +37,8 @@ All method return promises that can throw a ThauError in case when the status fr
 * `getUserById(id: number): Promise<User>` - returns a user for a given ID.
 * `createUser(user: User, password: string): Promise<Session>` - creates a new user using password ccredentials and returns created session.
 * `updateUser(user: User): Promise<User>` - updates the user and returns the new version of the user.
-* `logout(): Promise<void>` - logs the user out.
+* `logout(sessionId?: number): Promise<void>` - logs the user out from ccurrent session, or from some specificc session.
+* `listSessions(): Prommise<Omit<Session, "user">>[]` - returns a list of open sessions for current  user.
 * `verifyUserEmail(verificationCode: string): Promise<void>` - validates the Email of the user for a given verification code.s
 
 # Types

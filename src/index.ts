@@ -265,8 +265,16 @@ export class ThauJS {
     return updatedUser
   }
 
-  public async logout(): Promise<void> {
+  public async logout(sessionId?: number): Promise<void> {
+    try {
+      await this.delete(`/session${sessionId ? `?sessionId=${sessionId}` : ''}`)
+    } catch {}
+
     this.setToken(undefined)
+  }
+
+  public async listSessions(): Promise<Omit<Session, 'user'>[]> {
+    return await this.get('/session/open')
   }
 
   private async loginWith(strategy: Strategy, data: any): Promise<TokenDTO> {
@@ -335,6 +343,29 @@ export class ThauJS {
           ...this.getHeaders(),
         },
         body: JSON.stringify(data),
+      })
+
+      body = await response.json()
+    } catch (e) {
+      throw new ThauError(e.message)
+    }
+    await this.handleResponseError(response, body)
+    return body
+  }
+
+  private async delete(path: string, data?: any): Promise<any> {
+    let response
+    let body
+    try {
+      response = await fetch(`${this.url}${path}`, {
+        method: 'DELETE',
+        ...this.fetchOptions,
+        headers: {
+          accept: 'application/json',
+          'Content-Type': 'application/json',
+          ...this.getHeaders(),
+        },
+        body: data ? JSON.stringify(data) : data,
       })
 
       body = await response.json()
