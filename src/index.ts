@@ -59,6 +59,11 @@ export type Session = {
 export type TokenDTO = {
   token: string
 }
+export type Provider = {
+  id: number
+  provider: Strategy
+  provider_url?: string
+}
 
 export class ThauJS {
   private url: string
@@ -275,6 +280,10 @@ export class ThauJS {
 
   public async listSessions(): Promise<Omit<Session, 'user'>[]> {
     return await this.get('/session/open')
+  }
+
+  public async getUserProviders(userId?: number): Promise<Provider[]> {
+    return await this.get(`/providers${userId ? `?userId=${userId}` : ''}`)
   }
 
   private async loginWith(strategy: Strategy, data: any): Promise<TokenDTO> {

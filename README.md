@@ -60,4 +60,10 @@ export type Session = {
   strategy: Strategy
   user: User
 }
+
+export type Provider = {
+  id: number,
+  provider: Strategy,
+  provider_url?: string,
+}
 ```
