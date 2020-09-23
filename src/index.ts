@@ -80,27 +80,43 @@ export class ThauJS {
   private async init(searchParams: URLSearchParams): Promise<void> {
     this.configurations = await this.get('/configs')
 
+    if (this.isStrategySupported('facebook')) {
+      try {
+        console.log('Initializing Facebook SDK...')
+        await initFBApi(
+          this.configurations.facebookStrategyConfiguration.clientId,
+          this.configurations.facebookStrategyConfiguration.graphVersion
+        )
+        console.log('Facebook SDK: done.')
+      } catch (e) {
+        console.log('Facebook SDK: FAILED.')
+        this.configurations.availableStrategies.splice(
+          this.configurations.availableStrategies.indexOf('facebook')
+        )
+        console.error(e)
+      }
+    }
+
+    if (this.isStrategySupported('google')) {
+      try {
+        console.log('Initializing Google SDK...')
+        await initGoogleApi(
+          this.configurations.googleStrategyConfiguration.clientId
+        )
+        console.log('Google SDK: done.')
+      } catch (e) {
+        console.log('Google SDK: FAILED.')
+        this.configurations.availableStrategies.splice(
+          this.configurations.availableStrategies.indexOf('google')
+        )
+        console.error(e)
+      }
+    }
+
     try {
       await this.continueLoginFlow(searchParams)
     } catch (e) {
       console.error(e)
-    }
-
-    if (this.isStrategySupported('facebook')) {
-      console.log('Initializing Facebook SDK...')
-      await initFBApi(
-        this.configurations.facebookStrategyConfiguration.clientId,
-        this.configurations.facebookStrategyConfiguration.graphVersion
-      )
-      console.log('Facebook SDK: done.')
-    }
-
-    if (this.isStrategySupported('google')) {
-      console.log('Initializing Google SDK...')
-      await initGoogleApi(
-        this.configurations.googleStrategyConfiguration.clientId
-      )
-      console.log('Google SDK: done.')
     }
   }
 
@@ -122,7 +138,7 @@ export class ThauJS {
       }
 
       if (currentLoginFlow === 'linkedin') {
-        data.redirectURI = `${window.location.href}?strategy=linkedin`
+        data.redirectURI = `${this.getRedirectURI()}?strategy=linkedin`
       }
 
       await this.loginWith(currentLoginFlow, data)
@@ -147,7 +163,7 @@ export class ThauJS {
     let linkedinURI = `https://www.linkedin.com/oauth/v2/authorization?`
     linkedinURI += `response_type=code`
     linkedinURI += `&client_id=${this.configurations.linkedinStrategyConfiguration.clientId}`
-    linkedinURI += `&redirect_uri=${window.location.href}?strategy=linkedin`
+    linkedinURI += `&redirect_uri=${this.getRedirectURI()}?strategy=linkedin`
     linkedinURI += `&state=${Math.random().toString(36).substring(7)}`
     linkedinURI += `&scope=r_emailaddress,r_liteprofile`
 
@@ -157,7 +173,7 @@ export class ThauJS {
   public async loginWithTwitter(): Promise<void> {
     try {
       await this.loginWith('twitter', {
-        redirectURI: `${window.location.href}?strategy=twitter`,
+        redirectURI: `${this.getRedirectURI()}?strategy=twitter`,
       })
     } catch (e) {
       if (e.status === 'FOUND') {
@@ -221,10 +237,7 @@ export class ThauJS {
 
     const authInstance = gapi.auth2.getAuthInstance()
     const authResult = await authInstance.grantOfflineAccess()
-    let redirectURI = window.location.href
-    if (redirectURI.charAt(redirectURI.length - 1) === '/') {
-      redirectURI = redirectURI.slice(0, -1)
-    }
+    const redirectURI = this.getRedirectURI()
     if (authResult.code) {
       await this.loginWith('google', {
         code: authResult.code,
@@ -290,6 +303,14 @@ export class ThauJS {
     const tokenDto: TokenDTO = await this.post(`/session/${strategy}`, data)
     this.setToken(tokenDto.token)
     return tokenDto
+  }
+
+  private getRedirectURI() {
+    let redirectURI = window.location.origin + window.location.pathname
+    if (redirectURI.charAt(redirectURI.length - 1) === '/') {
+      redirectURI = redirectURI.slice(0, -1)
+    }
+    return redirectURI
   }
 
   private getHeaders() {
