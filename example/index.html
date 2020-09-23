@@ -111,6 +111,10 @@
       <div id="open-sessions">
 
       </div>
+      <button id="list-providers" type="button" class="btn btn-primary">List providers</button>
+      <div id="providers">
+
+      </div>
       <button type="button" class="btn btn-primary" id="thau-logout">Logout</button>
     </div>
   </div>
@@ -137,6 +141,7 @@
     var linkedinLoginBtn = document.getElementById('thau-linkedin')
     var logoutBtn = document.getElementById('thau-logout')
     var listOpenSessionsBtn = document.getElementById('list-open-sessions');
+    var listProvidersBtn = document.getElementById('list-providers');
 
     var onLoginSucceed = (session) => {
       window.session = session
@@ -238,6 +243,13 @@
       window.thau.listSessions().then((sessions) => {
         console.log(sessions)
         document.getElementById('open-sessions').innerText = JSON.stringify(sessions)
+      }).catch((err) => {
+        console.error(err);
+      })
+    })
+    listProvidersBtn.addEventListener('click', () => {
+      window.thau.getUserProviders().then((providers) => {
+        document.getElementById('providers').innerText = JSON.stringify(providers)
       }).catch((err) => {
         console.error(err);
       })
