@@ -125,7 +125,7 @@
         }
         ThauJS.prototype.init = function (searchParams) {
             return __awaiter(this, void 0, void 0, function () {
-                var _a, e_1;
+                var _a, e_1, e_2, e_3;
                 return __generator(this, function (_b) {
                     switch (_b.label) {
                         case 0:
@@ -133,34 +133,50 @@
                             return [4 /*yield*/, this.get('/configs')];
                         case 1:
                             _a.configurations = _b.sent();
+                            if (!this.isStrategySupported('facebook')) return [3 /*break*/, 5];
                             _b.label = 2;
                         case 2:
                             _b.trys.push([2, 4, , 5]);
-                            return [4 /*yield*/, this.continueLoginFlow(searchParams)];
+                            console.log('Initializing Facebook SDK...');
+                            return [4 /*yield*/, initFBApi(this.configurations.facebookStrategyConfiguration.clientId, this.configurations.facebookStrategyConfiguration.graphVersion)];
                         case 3:
                             _b.sent();
+                            console.log('Facebook SDK: done.');
                             return [3 /*break*/, 5];
                         case 4:
                             e_1 = _b.sent();
+                            console.log('Facebook SDK: FAILED.');
+                            this.configurations.availableStrategies.splice(this.configurations.availableStrategies.indexOf('facebook'));
                             console.error(e_1);
                             return [3 /*break*/, 5];
                         case 5:
-                            if (!this.isStrategySupported('facebook')) return [3 /*break*/, 7];
-                            console.log('Initializing Facebook SDK...');
-                            return [4 /*yield*/, initFBApi(this.configurations.facebookStrategyConfiguration.clientId, this.configurations.facebookStrategyConfiguration.graphVersion)];
-                        case 6:
-                            _b.sent();
-                            console.log('Facebook SDK: done.');
-                            _b.label = 7;
-                        case 7:
                             if (!this.isStrategySupported('google')) return [3 /*break*/, 9];
+                            _b.label = 6;
+                        case 6:
+                            _b.trys.push([6, 8, , 9]);
                             console.log('Initializing Google SDK...');
                             return [4 /*yield*/, initGoogleApi(this.configurations.googleStrategyConfiguration.clientId)];
-                        case 8:
+                        case 7:
                             _b.sent();
                             console.log('Google SDK: done.');
-                            _b.label = 9;
-                        case 9: return [2 /*return*/];
+                            return [3 /*break*/, 9];
+                        case 8:
+                            e_2 = _b.sent();
+                            console.log('Google SDK: FAILED.');
+                            this.configurations.availableStrategies.splice(this.configurations.availableStrategies.indexOf('google'));
+                            console.error(e_2);
+                            return [3 /*break*/, 9];
+                        case 9:
+                            _b.trys.push([9, 11, , 12]);
+                            return [4 /*yield*/, this.continueLoginFlow(searchParams)];
+                        case 10:
+                            _b.sent();
+                            return [3 /*break*/, 12];
+                        case 11:
+                            e_3 = _b.sent();
+                            console.error(e_3);
+                            return [3 /*break*/, 12];
+                        case 12: return [2 /*return*/];
                     }
                 });
             });
@@ -184,7 +200,7 @@
                                 throw new ThauError(data_1.error_description, 401);
                             }
                             if (currentLoginFlow === 'linkedin') {
-                                data_1.redirectURI = window.location.href + "?strategy=linkedin";
+                                data_1.redirectURI = this.getRedirectURI() + "?strategy=linkedin";
                             }
                             return [4 /*yield*/, this.loginWith(currentLoginFlow, data_1)];
                         case 1:
@@ -222,7 +238,7 @@
                     linkedinURI = "https://www.linkedin.com/oauth/v2/authorization?";
                     linkedinURI += "response_type=code";
                     linkedinURI += "&client_id=" + this.configurations.linkedinStrategyConfiguration.clientId;
-                    linkedinURI += "&redirect_uri=" + window.location.href + "?strategy=linkedin";
+                    linkedinURI += "&redirect_uri=" + this.getRedirectURI() + "?strategy=linkedin";
                     linkedinURI += "&state=" + Math.random().toString(36).substring(7);
                     linkedinURI += "&scope=r_emailaddress,r_liteprofile";
                     window.location.href = linkedinURI;
@@ -232,21 +248,21 @@
         };
         ThauJS.prototype.loginWithTwitter = function () {
             return __awaiter(this, void 0, void 0, function () {
-                var e_2;
+                var e_4;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
                             _a.trys.push([0, 2, , 3]);
                             return [4 /*yield*/, this.loginWith('twitter', {
-                                    redirectURI: window.location.href + "?strategy=twitter",
+                                    redirectURI: this.getRedirectURI() + "?strategy=twitter",
                                 })];
                         case 1:
                             _a.sent();
                             return [3 /*break*/, 3];
                         case 2:
-                            e_2 = _a.sent();
-                            if (e_2.status === 'FOUND') {
-                                window.location.href = e_2.message;
+                            e_4 = _a.sent();
+                            if (e_4.status === 'FOUND') {
+                                window.location.href = e_4.message;
                             }
                             return [3 /*break*/, 3];
                         case 3: return [2 /*return*/];
@@ -328,10 +344,7 @@
                             return [4 /*yield*/, authInstance.grantOfflineAccess()];
                         case 1:
                             authResult = _a.sent();
-                            redirectURI = window.location.href;
-                            if (redirectURI.charAt(redirectURI.length - 1) === '/') {
-                                redirectURI = redirectURI.slice(0, -1);
-                            }
+                            redirectURI = this.getRedirectURI();
                             if (!authResult.code) return [3 /*break*/, 3];
                             return [4 /*yield*/, this.loginWith('google', {
                                     code: authResult.code,
@@ -469,6 +482,13 @@
                 });
             });
         };
+        ThauJS.prototype.getRedirectURI = function () {
+            var redirectURI = window.location.origin + window.location.pathname;
+            if (redirectURI.charAt(redirectURI.length - 1) === '/') {
+                redirectURI = redirectURI.slice(0, -1);
+            }
+            return redirectURI;
+        };
         ThauJS.prototype.getHeaders = function () {
             var _a;
             var userDefinedHeaders = __assign({}, (_a = this.fetchOptions) === null || _a === void 0 ? void 0 : _a.headers);
@@ -476,62 +496,12 @@
         };
         ThauJS.prototype.get = function (path) {
             return __awaiter(this, void 0, void 0, function () {
-                var response, body, e_3;
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
-                        case 0:
-                            _a.trys.push([0, 3, , 4]);
-                            return [4 /*yield*/, fetch("" + this.url + path, __assign(__assign({}, this.fetchOptions), { headers: this.getHeaders() }))];
-                        case 1:
-                            response = _a.sent();
-                            return [4 /*yield*/, response.json()];
-                        case 2:
-                            body = _a.sent();
-                            return [3 /*break*/, 4];
-                        case 3:
-                            e_3 = _a.sent();
-                            throw new ThauError(e_3.message);
-                        case 4: return [4 /*yield*/, this.handleResponseError(response, body)];
-                        case 5:
-                            _a.sent();
-                            return [2 /*return*/, body];
-                    }
-                });
-            });
-        };
-        ThauJS.prototype.post = function (path, data) {
-            return __awaiter(this, void 0, void 0, function () {
-                var response, body, e_4;
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
-                        case 0:
-                            _a.trys.push([0, 3, , 4]);
-                            return [4 /*yield*/, fetch("" + this.url + path, __assign(__assign({ method: 'POST' }, this.fetchOptions), { headers: __assign({ accept: 'application/json', 'Content-Type': 'application/json' }, this.getHeaders()), body: JSON.stringify(data) }))];
-                        case 1:
-                            response = _a.sent();
-                            return [4 /*yield*/, response.json()];
-                        case 2:
-                            body = _a.sent();
-                            return [3 /*break*/, 4];
-                        case 3:
-                            e_4 = _a.sent();
-                            throw new ThauError(e_4.message);
-                        case 4: return [4 /*yield*/, this.handleResponseError(response, body)];
-                        case 5:
-                            _a.sent();
-                            return [2 /*return*/, body];
-                    }
-                });
-            });
-        };
-        ThauJS.prototype.put = function (path, data) {
-            return __awaiter(this, void 0, void 0, function () {
                 var response, body, e_5;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
                             _a.trys.push([0, 3, , 4]);
-                            return [4 /*yield*/, fetch("" + this.url + path, __assign(__assign({ method: 'PUT' }, this.fetchOptions), { headers: __assign({ accept: 'application/json', 'Content-Type': 'application/json' }, this.getHeaders()), body: JSON.stringify(data) }))];
+                            return [4 /*yield*/, fetch("" + this.url + path, __assign(__assign({}, this.fetchOptions), { headers: this.getHeaders() }))];
                         case 1:
                             response = _a.sent();
                             return [4 /*yield*/, response.json()];
@@ -549,9 +519,59 @@
                 });
             });
         };
-        ThauJS.prototype.delete = function (path, data) {
+        ThauJS.prototype.post = function (path, data) {
             return __awaiter(this, void 0, void 0, function () {
                 var response, body, e_6;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            _a.trys.push([0, 3, , 4]);
+                            return [4 /*yield*/, fetch("" + this.url + path, __assign(__assign({ method: 'POST' }, this.fetchOptions), { headers: __assign({ accept: 'application/json', 'Content-Type': 'application/json' }, this.getHeaders()), body: JSON.stringify(data) }))];
+                        case 1:
+                            response = _a.sent();
+                            return [4 /*yield*/, response.json()];
+                        case 2:
+                            body = _a.sent();
+                            return [3 /*break*/, 4];
+                        case 3:
+                            e_6 = _a.sent();
+                            throw new ThauError(e_6.message);
+                        case 4: return [4 /*yield*/, this.handleResponseError(response, body)];
+                        case 5:
+                            _a.sent();
+                            return [2 /*return*/, body];
+                    }
+                });
+            });
+        };
+        ThauJS.prototype.put = function (path, data) {
+            return __awaiter(this, void 0, void 0, function () {
+                var response, body, e_7;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            _a.trys.push([0, 3, , 4]);
+                            return [4 /*yield*/, fetch("" + this.url + path, __assign(__assign({ method: 'PUT' }, this.fetchOptions), { headers: __assign({ accept: 'application/json', 'Content-Type': 'application/json' }, this.getHeaders()), body: JSON.stringify(data) }))];
+                        case 1:
+                            response = _a.sent();
+                            return [4 /*yield*/, response.json()];
+                        case 2:
+                            body = _a.sent();
+                            return [3 /*break*/, 4];
+                        case 3:
+                            e_7 = _a.sent();
+                            throw new ThauError(e_7.message);
+                        case 4: return [4 /*yield*/, this.handleResponseError(response, body)];
+                        case 5:
+                            _a.sent();
+                            return [2 /*return*/, body];
+                    }
+                });
+            });
+        };
+        ThauJS.prototype.delete = function (path, data) {
+            return __awaiter(this, void 0, void 0, function () {
+                var response, body, e_8;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
@@ -564,8 +584,8 @@
                             body = _a.sent();
                             return [3 /*break*/, 4];
                         case 3:
-                            e_6 = _a.sent();
-                            throw new ThauError(e_6.message);
+                            e_8 = _a.sent();
+                            throw new ThauError(e_8.message);
                         case 4: return [4 /*yield*/, this.handleResponseError(response, body)];
                         case 5:
                             _a.sent();
