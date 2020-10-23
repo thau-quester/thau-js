@@ -55,6 +55,11 @@ export type Session = {
   id: number
   strategy: Strategy
   user: User
+  open: boolean
+  roles?: string[]
+  hasRole: (role: string) => boolean
+  hasAllRoles: (...roles: string[]) => boolean
+  hasOneRoleOf: (...roles: string[]) => boolean
 }
 export type TokenDTO = {
   token: string
@@ -152,6 +157,9 @@ export class ThauJS {
   public async getCurrentSession(): Promise<Session> {
     const session: Session = await this.get('/session')
     session.user.dateOfBirth = new Date(session.user.dateOfBirth)
+    session.hasRole = (role) => session.roles && session.roles.indexOf(role) !== -1
+    session.hasAllRoles = (...roles) => session.roles && roles.every(session.hasRole)
+    session.hasOneRoleOf = (...roles) => session.roles && roles.some(session.hasRole)
     return session
   }
 
@@ -286,7 +294,7 @@ export class ThauJS {
   public async logout(sessionId?: number): Promise<void> {
     try {
       await this.delete(`/session${sessionId ? `?sessionId=${sessionId}` : ''}`)
-    } catch {}
+    } catch { }
 
     this.setToken(undefined)
   }
@@ -297,6 +305,16 @@ export class ThauJS {
 
   public async getUserProviders(userId?: number): Promise<Provider[]> {
     return await this.get(`/providers${userId ? `?userId=${userId}` : ''}`)
+  }
+
+  public async authFetch(url: string, init?: RequestInit): Promise<Response> {
+    return await fetch(url, {
+      ...init,
+      headers: {
+        ...(init ? init.headers : {}),
+        'x-thau-jwt': this.token,
+      }
+    })
   }
 
   private async loginWith(strategy: Strategy, data: any): Promise<TokenDTO> {
